@@ -1,6 +1,6 @@
 #pragma once
-#include "bar_serving.h"
 #include <functional>
+#include "bar_serving.h"
 
 /**
  * @todo Implement functor-generator that will return next beer brand (cyclic)
@@ -16,7 +16,7 @@ struct BeerOrganizer
  *
  * @note Only Corona and HoeGaarden are expensive
  */
-bool isExpensiveBeer(/**???*/)
+bool isExpensiveBeer( /**???*/ )
 {
 }
 
@@ -24,25 +24,23 @@ bool isExpensiveBeer(/**???*/)
  * @todo Implement lambda beer country equality comparator
  * @return true if beer county is the same, false otherwise
  */
-auto sameCountry = [](/**???*/)
-{
-};
+auto sameCountry = []( /**???*/ ) {};
 
 struct MixingPolicy
 {
-    /**
-     * @todo Implement static transformator function
-     * @return crafted cocktail
-     *
-     * @note Cookbook:
-     * Gin + Lime juice = Gimlet;
-     * Gin + Grapefruit juice = Greyhount;
-     * Whiskey + SevenUp = SevenPlusSeven;
-     * Others + Others = Oops;
-     */
-    static Cocktail mix(/**???*/)
-    {
-    }
+   /**
+    * @todo Implement static transformator function
+    * @return crafted cocktail
+    *
+    * @note Cookbook:
+    * Gin + Lime juice = Gimlet;
+    * Gin + Grapefruit juice = Greyhount;
+    * Whiskey + SevenUp = SevenPlusSeven;
+    * Others + Others = Oops;
+    */
+   static Cocktail mix( /**???*/ )
+   {
+   }
 };
 
-std::function</**???*/> mixer {&MixingPolicy::mix};
+std::function</**???*/> mixer{ &MixingPolicy::mix };
