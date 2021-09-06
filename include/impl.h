@@ -1,5 +1,8 @@
 #pragma once
+#include <cstdint>  // uint32_t
 #include <functional>
+#include <map>
+#include <utility>  // std::pair
 #include "bar_serving.h"
 
 /**
@@ -8,6 +11,20 @@
  */
 struct BeerOrganizer
 {
+   // always guaranteed that at least None and Max exist
+   BeerBrand m_currentBrand{ BeerBrand::None };
+
+   BeerBrand operator()()
+   {
+      m_currentBrand = static_cast<BeerBrand>( static_cast<uint32_t>( m_currentBrand ) + 1 );
+
+      if ( m_currentBrand == BeerBrand::Max )
+      {
+         m_currentBrand = static_cast<BeerBrand>( static_cast<uint32_t>( BeerBrand::None ) + 1 );
+      }
+
+      return m_currentBrand;
+   }
 };
 
 /**
@@ -16,15 +33,23 @@ struct BeerOrganizer
  *
  * @note Only Corona and HoeGaarden are expensive
  */
-bool isExpensiveBeer( /**???*/ )
+bool isExpensiveBeer( const BeerBrand beer )
 {
+   if ( beer == BeerBrand::Corona || beer == BeerBrand::HoeGaarden )
+   {
+      return true;
+   }
+
+   return false;
 }
 
 /**
  * @todo Implement lambda beer country equality comparator
  * @return true if beer county is the same, false otherwise
  */
-auto sameCountry = []( /**???*/ ) {};
+auto sameCountry = []( const BeerBrand lhs, const BeerBrand rhs ) {
+   return getBeerCountry( lhs ) == getBeerCountry( rhs );
+};
 
 struct MixingPolicy
 {
@@ -38,9 +63,24 @@ struct MixingPolicy
     * Whiskey + SevenUp = SevenPlusSeven;
     * Others + Others = Oops;
     */
-   static Cocktail mix( /**???*/ )
+
+   static const std::map<std::pair<AlcoholDrink, NonAlcoholDrink>, Cocktail> cookbook;
+
+   static Cocktail mix( const AlcoholDrink alcohol, const NonAlcoholDrink nonAlcohol )
    {
+      std::pair<AlcoholDrink, NonAlcoholDrink> recipe{ alcohol, nonAlcohol };
+      if ( cookbook.count( recipe ) == 0 )
+      {
+         return Cocktail::Oops;
+      }
+
+      return cookbook.at( recipe );
    }
 };
 
-std::function</**???*/> mixer{ &MixingPolicy::mix };
+const std::map<std::pair<AlcoholDrink, NonAlcoholDrink>, Cocktail> MixingPolicy::cookbook = {
+    { { AlcoholDrink::Gin, NonAlcoholDrink::LimeJuice }, Cocktail::Gimlet },
+    { { AlcoholDrink::Gin, NonAlcoholDrink::GrapefruitJuice }, Cocktail::Greyhount },
+    { { AlcoholDrink::Whiskey, NonAlcoholDrink::SevenUp }, Cocktail::SevenPlusSeven } };
+
+std::function<Cocktail( const AlcoholDrink, const NonAlcoholDrink )> mixer{ &MixingPolicy::mix };
