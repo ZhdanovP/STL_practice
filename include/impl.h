@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>  // uint32_t
 #include <functional>
-#include <map>
+#include <unordered_map>
 #include <utility>  // std::pair
 #include "bar_serving.h"
 
@@ -66,7 +66,20 @@ struct MixingPolicy
     * Others + Others = Oops;
     */
 
-   static const std::map<std::pair<AlcoholDrink, NonAlcoholDrink>, Cocktail> cookbook;
+   class RecipeHasher
+   {
+   public:
+      std::size_t operator()( const std::pair<AlcoholDrink, NonAlcoholDrink>& recipe ) const
+      {
+         std::size_t first  = std::hash<uint32_t>{}( static_cast<uint32_t>( recipe.first ) );
+         std::size_t second = std::hash<uint32_t>{}( static_cast<uint32_t>( recipe.second ) );
+
+         return first ^ ( second << 1 );
+      }
+   };
+
+   static const std::unordered_map<std::pair<AlcoholDrink, NonAlcoholDrink>, Cocktail, RecipeHasher>
+       cookbook;
 
    static Cocktail mix( const AlcoholDrink alcohol, const NonAlcoholDrink nonAlcohol )
    {
@@ -80,9 +93,11 @@ struct MixingPolicy
    }
 };
 
-const std::map<std::pair<AlcoholDrink, NonAlcoholDrink>, Cocktail> MixingPolicy::cookbook = {
-    { { AlcoholDrink::Gin, NonAlcoholDrink::LimeJuice }, Cocktail::Gimlet },
-    { { AlcoholDrink::Gin, NonAlcoholDrink::GrapefruitJuice }, Cocktail::Greyhount },
-    { { AlcoholDrink::Whiskey, NonAlcoholDrink::SevenUp }, Cocktail::SevenPlusSeven } };
+const std::unordered_map<std::pair<AlcoholDrink, NonAlcoholDrink>, Cocktail,
+                         MixingPolicy::RecipeHasher>
+    MixingPolicy::cookbook = {
+        { { AlcoholDrink::Gin, NonAlcoholDrink::LimeJuice }, Cocktail::Gimlet },
+        { { AlcoholDrink::Gin, NonAlcoholDrink::GrapefruitJuice }, Cocktail::Greyhount },
+        { { AlcoholDrink::Whiskey, NonAlcoholDrink::SevenUp }, Cocktail::SevenPlusSeven } };
 
 std::function<Cocktail( const AlcoholDrink, const NonAlcoholDrink )> mixer{ &MixingPolicy::mix };
