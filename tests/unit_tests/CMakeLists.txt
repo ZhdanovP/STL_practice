@@ -1,9 +1,9 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.8)
 
 project (unit_tests
          LANGUAGES CXX)
 
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 17)
 
 set(sources
     "${UT_DIRECTORY}/src/main.cpp"
@@ -17,7 +17,7 @@ include_directories(unit_tests
         ${UT_DIRECTORY}/headers
 )
 
-add_definitions(-DGTEST_LANGUAGE_CXX11)
+add_definitions(-DGTEST_LANGUAGE_CXX17)
 
 include(AddGTestTest)
 
@@ -26,5 +26,5 @@ add_gtest_test(${PROJECT_NAME} "${sources}" SafeCallTaskHomework)
 
 include_directories(
         PRIVATE
-        ${REPO_DIRECTORY}/include
+        ${ROOT_DIR}/include
         )
