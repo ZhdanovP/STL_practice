@@ -8,6 +8,16 @@
  */
 struct BeerOrganizer
 {
+    int idx {static_cast<int>(BeerBrand::HoeGaarden)};
+    int idx_max {static_cast<int>(BeerBrand::Max)};
+    BeerBrand operator()()
+    {
+        if (idx == idx_max)
+        {
+            idx = static_cast<int>(BeerBrand::HoeGaarden);
+        }
+        return static_cast<BeerBrand>(idx++);
+    }
 };
 
 /**
@@ -16,16 +26,19 @@ struct BeerOrganizer
  *
  * @note Only Corona and HoeGaarden are expensive
  */
-bool isExpensiveBeer(/**???*/)
+bool isExpensiveBeer(BeerBrand brand)
 {
+    return brand == BeerBrand::Corona
+        || brand == BeerBrand::HoeGaarden;
 }
 
 /**
  * @todo Implement lambda beer country equality comparator
  * @return true if beer county is the same, false otherwise
  */
-auto sameCountry = [](/**???*/)
+auto sameCountry = [](BeerBrand lhs, BeerBrand rhs)
 {
+    return getBeerCountry(lhs) == getBeerCountry(rhs);
 };
 
 struct MixingPolicy
@@ -40,9 +53,45 @@ struct MixingPolicy
      * Whiskey + SevenUp = SevenPlusSeven;
      * Others + Others = Oops;
      */
-    static Cocktail mix(/**???*/)
+    static Cocktail mix(AlcoholDrink alcohol, NonAlcoholDrink non_alcohol)
     {
+        switch (alcohol)
+        {
+            case AlcoholDrink::Gin:
+            {
+                switch (non_alcohol)
+                {
+                    case NonAlcoholDrink::LimeJuice:
+                    {
+                        return Cocktail::Gimlet;
+                    }
+                    case NonAlcoholDrink::GrapefruitJuice:
+                    {
+                        return Cocktail::Greyhount;
+                    }
+                    default:
+                    {
+                        return Cocktail::Oops;
+                    }
+                }
+            }
+            case AlcoholDrink::Whiskey:
+            {
+                if (non_alcohol == NonAlcoholDrink::SevenUp)
+                {
+                    return Cocktail::SevenPlusSeven;
+                }
+                else
+                {
+                    return Cocktail::Oops;
+                }
+            }
+            default:
+            {
+                return Cocktail::Oops;
+            }
+        }
     }
 };
 
-std::function</**???*/> mixer {&MixingPolicy::mix};
+std::function<Cocktail(AlcoholDrink, NonAlcoholDrink)> mixer {&MixingPolicy::mix};
