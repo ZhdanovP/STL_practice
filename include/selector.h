@@ -1,6 +1,6 @@
 #pragma once
-#include <vector>
 #include <deque>
+#include <vector>
 
 /**
  * @warning
@@ -15,20 +15,19 @@
 class IDataSelector
 {
 public:
-    virtual ~IDataSelector() = default;
-    /**
-     * Challenge method with deprecated param, that should allways be zero
-     */
-    virtual bool getDataType1(std::vector<size_t>& returnValues,
-                              const size_t unusedDataShouldBeZero) const = 0;
-    /**
-     * Normal method
-     */
-    virtual bool getDataType2(std::vector<size_t>& returnValues) const = 0;
+   virtual ~IDataSelector() = default;
+   /**
+    * Challenge method with deprecated param, that should allways be zero
+    */
+   virtual bool getDataType1( std::vector<size_t>& returnValues,
+                              const size_t unusedDataShouldBeZero ) const = 0;
+   /**
+    * Normal method
+    */
+   virtual bool getDataType2( std::vector<size_t>& returnValues ) const = 0;
 
-    /**
-     * Maintainer added method with another signature
-     */
-    virtual bool getDataType3(std::deque<size_t>& returnValues) const = 0;
-
+   /**
+    * Maintainer added method with another signature
+    */
+   virtual bool getDataType3( std::deque<size_t>& returnValues ) const = 0;
 };
