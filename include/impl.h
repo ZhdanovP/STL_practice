@@ -8,7 +8,23 @@
  */
 struct BeerOrganizer
 {
+    int32_t value;
+
+    BeerOrganizer()
+    : value(static_cast<int32_t>(BeerBrand::None)){}
+    
     BeerBrand operator()() {
+        value++;
+        if(value == static_cast<int32_t>(BeerBrand::Max))
+        {
+        value = (static_cast<int32_t>(BeerBrand::HoeGaarden));
+
+        }
+
+        return static_cast<BeerBrand>(value);
+    }
+    
+    /*BeerBrand operator()() {
         switch(brand) {
         case BeerBrand::HoeGaarden:
             brand = BeerBrand::Corona;
@@ -35,6 +51,7 @@ struct BeerOrganizer
     }
     private:
         BeerBrand brand = BeerBrand::None;
+    */
 };
 
 /**
@@ -95,3 +112,5 @@ struct MixingPolicy
 };
 
 std::function<Cocktail(AlcoholDrink, NonAlcoholDrink)> mixer {&MixingPolicy::mix};
+//std::function<Cocktail(&MixingPolicy, AlcoholDrink, NonAlcoholDrink)> mixer = &MixingPolicy::mix; // for static
+//std::function<Cocktail(AlcoholDrink, NonAlcoholDrink)> mixer = &MixingPolicy::mix; // for regular functions
