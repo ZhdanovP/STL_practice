@@ -11,9 +11,7 @@
  */
 struct BeerOrganizer
 {
-   // always guaranteed that at least None and Max exist
-   BeerBrand m_currentBrand{ BeerBrand::None };
-
+public:
    BeerBrand operator()()
    {
       m_currentBrand = static_cast<BeerBrand>( static_cast<uint32_t>( m_currentBrand ) + 1 );
@@ -25,6 +23,10 @@ struct BeerOrganizer
 
       return m_currentBrand;
    }
+
+private:
+   // always guaranteed that at least None and Max exist
+   BeerBrand m_currentBrand{ BeerBrand::None };
 };
 
 /**
