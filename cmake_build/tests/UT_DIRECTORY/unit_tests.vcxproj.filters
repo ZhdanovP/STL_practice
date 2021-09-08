@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="D:\Users\AIZakharov\Documents\GitHub\STL_practice\tests\unit_tests\src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Users\AIZakharov\Documents\GitHub\STL_practice\tests\unit_tests\src\maintest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\Users\AIZakharov\Documents\GitHub\STL_practice\tests\unit_tests\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{8C140E89-1406-34FB-9163-9E0F39EF1CD7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
