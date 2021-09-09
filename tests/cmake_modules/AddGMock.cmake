@@ -1,5 +1,5 @@
 macro(add_gmock)
-    set(MOCKDIR ../../googletest)
+    set(MOCKDIR D:/Users/AIZakharov/Documents/GitHub/googletest)
 
 
     if(IS_DIRECTORY ${MOCKDIR})

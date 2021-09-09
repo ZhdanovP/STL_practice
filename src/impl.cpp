@@ -1,4 +1,5 @@
 #include "impl.h"
+#include <iterator>
 
 void DataBrowser::userLeave(const std::string &userId)
 {
@@ -7,48 +8,46 @@ void DataBrowser::userLeave(const std::string &userId)
 
 bool DataBrowser::getDataType1(const std::string &userId, std::vector<size_t> &returnValues) const
 {
-    const auto& it = m_dataReaders.find(userId);
-    if (it == m_dataReaders.cend())
-    {
-        return false;
-    }
-    if (it->second == nullptr)
-    {
-        return false;
-    }
-    return it->second->getDataType1(returnValues, 0);
+   auto memFnDataType1 = std::mem_fn(&IDataSelector::getDataType2);
+   //auto bind = std::bind(memFnDataType1, std::placeholders::_1/*, 0*/);
+
+   auto functor = [this, memFnDataType1/*bind*/, &returnValues](const std::unique_ptr<IDataSelector>& ptr)
+   {
+      return invokeDataRequest(memFnDataType1/*bind*/, ptr, returnValues);
+   };
+   
+   return safeCall(userId, functor);   
 }
 
 bool DataBrowser::getDataType2(std::vector<size_t> &returnValues, const std::string &userId) const
 {
-    const auto& it = m_dataReaders.find(userId);
-    if (it == m_dataReaders.cend())
-    {
-        return false;
-    }
-    if (it->second == nullptr)
-    {
-        return false;
-    }
-    return it->second->getDataType2(returnValues);
+   auto memFnDataType1 = std::mem_fn(&IDataSelector::getDataType2);
+
+   auto functor = [this, memFnDataType1, &returnValues](const std::unique_ptr<IDataSelector>& ptr)
+   {
+      return invokeDataRequest(memFnDataType1, ptr, returnValues);
+   };
+
+   return safeCall(userId, functor);
 }
 
 bool DataBrowser::getDataType3(const std::string &userId, std::vector<std::string> &returnValues) const
 {
-    const auto& it = m_dataReaders.find(userId);
-    if (it == m_dataReaders.cend())
+    std::deque<size_t> unprocessedResults {};
+    auto memFnDataType1 = std::mem_fn(&IDataSelector::getDataType3);
+
+    auto functor = [this, memFnDataType1, &unprocessedResults](const std::unique_ptr<IDataSelector>& ptr)
     {
-        return false;
-    }
-    if (it->second == nullptr)
+       return invokeDataRequest(memFnDataType1, ptr, unprocessedResults);
+    };
+    
+    const bool result = safeCall(userId, functor);
+    if (result)
     {
-        return false;
+       returnValues = process(unprocessedResults);
     }
 
-    std::deque<size_t> unprocessedResults {};
-    bool success {it->second->getDataType3(unprocessedResults)};
-    returnValues = process(unprocessedResults);
-    return success;
+    return result;
 }
 
 template<class T>
