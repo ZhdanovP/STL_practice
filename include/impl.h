@@ -63,9 +63,10 @@ private:
     {
         static_assert(std::is_same<decltype(f(nullptr)), bool>::value, "Provided Callable must return bool");
         // find reader
+        const auto& it = m_dataReaders.find(userId);
         // check for errors
         // call functor
-        return false;
+        return it != m_dataReaders.cend() && it->second != nullptr && f( it->second );
     }
 
     /**
@@ -78,6 +79,6 @@ private:
     {
         // adapt function
         // call selector member
-        return false;
+        return method( selector.get(), result );
     }
 };
