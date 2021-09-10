@@ -59,28 +59,21 @@ private:
     * If request is valid (user exists and a valid selector exists),
     * this method calls passed callback with a valid selector pointer
     */
-   template <typename T>
-   bool safeCall( const std::string& userId, T&& f ) const
-   {
-      static_assert( std::is_same<decltype( f( nullptr ) ), bool>::value,
-                     "Provided Callable must return bool" );
-      // find reader
-      // check for errors
-      // call functor
-      return false;
-   }
+   bool safeCall( const std::string& userId,
+                  std::function<bool( const std::unique_ptr<IDataSelector>& )> f ) const;
 
    /**
     * @todo You should implement this method, that is responsible for a "general" data requesting
     * General data request will return bool, accept the selector and output param
     * You must adapt functors before invocation
     */
-   template <class Functional, typename Output>
+   // [Note] to be sure that template Container is really container:
+   // https://stackoverflow.com/a/9407521
+
+   template <class Functional, typename Container>
    bool invokeDataRequest( Functional method, const std::unique_ptr<IDataSelector>& selector,
-                           Output& result ) const
+                           Container& result ) const
    {
-      // adapt function
-      // call selector member
-      return false;
+      return method( selector.get(), result );
    }
 };
