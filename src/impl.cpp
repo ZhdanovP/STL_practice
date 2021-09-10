@@ -8,12 +8,17 @@ void DataBrowser::userLeave(const std::string &userId)
 
 bool DataBrowser::getDataType1(const std::string &userId, std::vector<size_t> &returnValues) const
 {
-   auto memFnDataType1 = std::mem_fn(&IDataSelector::getDataType2);
+   auto memFnDataType1Adapter = [](const IDataSelector* selector,
+      std::vector<size_t>& returnValues)
+   {
+      return selector != nullptr && selector->getDataType1(returnValues, 0u);
+   };
+   //auto memFnDataType1 = std::mem_fn(&IDataSelector::getDataType2);
    //auto bind = std::bind(memFnDataType1, std::placeholders::_1/*, 0*/);
 
-   auto functor = [this, memFnDataType1/*bind*/, &returnValues](const std::unique_ptr<IDataSelector>& ptr)
+   auto functor = [this, memFnDataType1Adapter/*bind*/, &returnValues](const std::unique_ptr<IDataSelector>& ptr)
    {
-      return invokeDataRequest(memFnDataType1/*bind*/, ptr, returnValues);
+      return invokeDataRequest(memFnDataType1Adapter/*bind*/, ptr, returnValues);
    };
    
    return safeCall(userId, functor);   
