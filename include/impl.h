@@ -1,83 +1,41 @@
 #pragma once
-#include <map>
-#include <memory>
-#include <functional>
-#include <algorithm>
-#include "selector.h"
+#include <vector>
+#include <string>
+#include <stdexcept>
 
-// for testing purposes
-extern IDataSelector* getSelector();
-
-class DataBrowser
+template<class Container, class Song_t>
+class StaticPlaylist
 {
 public:
-    /**
-     * Removes data reader by key
-     */
-    void userLeave(const std::string& userId);
+    /** @todo Member traits */
 
-    /**
-     * Adds data reader to map
-     */
-    void userEnter(const std::string& userId)
-    {  // awful, but in header for testing
-        m_dataReaders.emplace(userId, getSelector());
-    }
+    /** @todo Iterators */
 
-    /** @todo THIS METHOD MUST USE safeCall idiom AND invokeDataRequest ON SUCCESS
-    * "normal" method
-    */
-    bool getDataType1(const std::string& userId, std::vector<size_t>& returnValues) const;
+    StaticPlaylist() = default;
 
-    /** @todo THIS METHOD MUST USE safeCall idiom AND invokeDataRequest ON SUCCESS
-    * method with non-standard order of arguments
-    */
-    bool getDataType2(std::vector<size_t>& returnValues, const std::string& userId) const;
+    /** @todo Constructor from any reversible sequence container */
 
-    /** THIS METHOD MUST USE safeCall idiom AND invokeDataRequest ON SUCCESS
-     * method with non-standard output param
-     */
-    bool getDataType3(const std::string& userId, std::vector<std::string>& returnValues) const;
+    /** @todo Assignment from any reversible sequence container */
 
-    // getDataType55...
+    /** @todo Add track from initializer */
+    template<class... Args>
+    const Song_t& play(Args&&... songData);
+
+    /** @todo Add track */
+    const Song_t& play(const Song_t& song);
+
+    /** @todo Get first track in playlist stack */
+    const Song_t& current() const;
+
+    /** @todo Skip to the next track in playlist, remove current */
+    void switchNext();
+
+    /** @todo Amount of tracks in playlist */
+    size_type count() const;
+
+    /** @todo Checks if playlist has any playable tracks */
+    bool hasTracks() const;
+
 private:
-    // dummy processing for making task harder
-    template<class T>
-    std::vector<std::string> process(const T& source) const;
-
-    /**
-     * Each user has an asociated data reader
-     */
-    std::map<std::string /*userId*/,
-            std::unique_ptr<IDataSelector> /* database selector - imagine that it is interface */
-            > m_dataReaders;
-
-    /**
-     * @todo SafeCall idiom
-     * You should implement this method, that is responsible for request validation.
-     * If request is valid (user exists and a valid selector exists),
-     * this method calls passed callback with a valid selector pointer
-     */
-    template <typename T>
-    bool safeCall(const std::string &userId, T&& f) const
-    {
-        static_assert(std::is_same<decltype(f(nullptr)), bool>::value, "Provided Callable must return bool");
-        // find reader
-        // check for errors
-        // call functor
-        return false;
-    }
-
-    /**
-     * @todo You should implement this method, that is responsible for a "general" data requesting
-     * General data request will return bool, accept the selector and output param
-     * You must adapt functors before invocation
-     */
-    template<class Functional, typename Output>
-    bool invokeDataRequest(Functional method, const std::unique_ptr<IDataSelector>& selector, Output& result) const
-    {
-        // adapt function
-        // call selector member
-        return false;
-    }
+    Container m_tracklist;
 };

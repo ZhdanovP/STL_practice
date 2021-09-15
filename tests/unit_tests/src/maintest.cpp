@@ -1,230 +1,164 @@
 #include "maintest.h"
+#include <vector>
+#include <deque>
+#include <list>
 
 using namespace ::testing;
-
-auto getMockSelector = [](const DataBrowser& browser, const std::string& user) {
-    auto* dataSelector = browser.m_dataReaders.find(user)->second.get();
-    return dynamic_cast<MockDataSelector*>(dataSelector);
+struct Song
+{
+    std::string name;
+    explicit Song(std::string song_name)
+        : name {std::move(song_name)}
+    {
+    }
 };
 
-namespace
+bool operator==(const Song& lhs, const Song& rhs)
 {
-bool simulateCreationFail {false};
+    return lhs.name == rhs.name;
 }
 
-IDataSelector* getSelector()
+using basic_container = std::vector<Song>;
+using other_container1 = std::deque<Song>;
+using other_container2 = std::list<Song>;
+
+using DefaultTracklist = StaticPlaylist<basic_container, Song>;
+
+TEST(Traits, ContainerTraits)
 {
-    if (simulateCreationFail)
+    static_assert (std::is_same<DefaultTracklist::value_type,
+                                Song>::value,
+                   "Wrong value_type trait!");
+    static_assert (std::is_same<DefaultTracklist::reference,
+                                Song&>::value,
+                   "Wrong reference trait!");
+    static_assert (std::is_same<DefaultTracklist::const_reference,
+                                const Song&>::value,
+                   "Wrong const_reference trait!");
+    static_assert (std::is_same<DefaultTracklist::iterator,
+                                basic_container::iterator>::value,
+                   "Wrong iterator trait!");
+    static_assert (std::is_same<DefaultTracklist::const_iterator,
+                                basic_container::const_iterator>::value,
+                   "Wrong const_iterator trait!");
+    static_assert (std::is_same<DefaultTracklist::difference_type,
+                                ptrdiff_t>::value,
+                   "Wrong difference_type trait!");
+    static_assert (std::is_same<DefaultTracklist::size_type,
+                                size_t>::value,
+                   "Wrong size_type trait!");
+}
+
+TEST(Initialization, PlaylistInitBasic)
+{
+    basic_container data {Song{"example1"}, Song{"example2"}};
+    DefaultTracklist playlist {data};
+    EXPECT_TRUE(playlist.hasTracks());
+}
+
+TEST(Initialization, PlaylistInitOther1)
+{
+    other_container1 data {Song{"example1"}, Song{"example2"}};
+    DefaultTracklist playlist {data};
+    EXPECT_TRUE(playlist.hasTracks());
+}
+
+TEST(Initialization, PlaylistInitOther2)
+{
+    other_container2 data {Song{"example1"}, Song{"example2"}};
+    DefaultTracklist playlist {data};
+    EXPECT_TRUE(playlist.hasTracks());
+}
+
+TEST(RangeFor, Iterators)
+{
+    basic_container data {Song{"example1"}, Song{"example2"}};
+    DefaultTracklist playlist {data};
+
+    for (auto& entry : playlist)
     {
-        return nullptr;
+        static_assert (std::is_const<std::remove_reference<decltype (entry)>::type>::value,
+                       "Iterator must be only const");
     }
-    return new MockDataSelector {};
 }
 
-TEST_F(SafeCall, CheckSafeCallForNullPointer)
+TEST(TracklistCommon, Order)
 {
-    simulateCreationFail = true;
-    const std::string userId {"100"};
-    m_browser.userEnter(userId);
-    auto dummy = [](const std::unique_ptr<IDataSelector>&) -> bool {
-        ADD_FAILURE() << "Functor call is invalid for nullptr";
-        return true;
-    };
-    ASSERT_FALSE(m_browser.safeCall(userId, dummy));
-    simulateCreationFail = false;
-    m_browser.userLeave("100");
+    basic_container data {Song{"example1"}, Song{"example2"}};
+    DefaultTracklist playlist {data};
+
+    std::reverse(data.begin(), data.end());
+    EXPECT_TRUE(std::equal(playlist.begin(), playlist.end(), data.begin()));
 }
 
-TEST_F(SafeCall, CheckSafeCallPositive)
+TEST(TracklistOperations, AssignLvalue)
 {
-    auto functor = [](const std::unique_ptr<IDataSelector>&) {return true;};
-    EXPECT_TRUE(m_browser.safeCall("1", functor));
-    EXPECT_TRUE(m_browser.safeCall("2", functor));
+    basic_container data {Song{"example1"}, Song{"example2"}};
+    DefaultTracklist playlist {data};
+
+    other_container1 newData {Song {"example0"}, Song {"example3"}};
+    playlist = newData;
+
+    EXPECT_EQ(playlist.count(), 2);
+    EXPECT_EQ(playlist.current(), Song {"example0"});
 }
 
-TEST_F(InvokeDataRequestCall, ShouldCompileDifferentCallable_Lambda)
+TEST(TracklistOperations, FromArguments)
 {
-    std::vector<size_t> dummyData;
-    std::unique_ptr<IDataSelector> selector {new MockDataSelector {}};
-
-    bool lambdaCalled {false};
-
-    auto lambda = [&](const IDataSelector*, std::vector<size_t>&) {
-        lambdaCalled = true;
-        return true;
-    };
-
-    m_browser.invokeDataRequest(lambda, selector, dummyData);
-    EXPECT_TRUE(lambdaCalled);
+    basic_container data {Song{"example1"}, Song{"example2"}};
+    DefaultTracklist playlist {data};
+    playlist.play("example3");
+    EXPECT_EQ(playlist.current().name, "example3");
 }
 
-TEST_F(InvokeDataRequestCall, ShouldCompileDifferentCallable_Bind)
+TEST(TracklistOperations, FromSeveralArguments)
 {
-    std::vector<size_t> dummyData;
-    std::unique_ptr<IDataSelector> selector {new MockDataSelector {}};
+    struct SongNoMove {
+        SongNoMove() = delete;
+        SongNoMove(const std::string& name, size_t year)
+                 : name {name},
+                   year {year}
+        {
+        }
 
-    bool lambdaCalled {false};
+        SongNoMove(SongNoMove&&) = delete;
+        SongNoMove(const SongNoMove&) = delete;
 
-    auto lambda = [&](const IDataSelector*, std::vector<size_t>&) {
-        lambdaCalled = true;
-        return true;
-    };
-    auto bindExpression = std::bind(lambda, std::placeholders::_1, std::placeholders::_2);
-
-    m_browser.invokeDataRequest(bindExpression, selector, dummyData);
-    EXPECT_TRUE(lambdaCalled);
-}
-
-TEST_F(InvokeDataRequestCall, ShouldCompileDifferentCallable_MemFn)
-{
-
-    std::vector<size_t> dummyData;
-    auto mockSelector = new MockDataSelector {};
-    std::unique_ptr<IDataSelector> selector {mockSelector};
-
-    bool lambdaCalled {false};
-
-    auto lambda = [&](std::vector<size_t>&) {
-        lambdaCalled = true;
-        return true;
-    };
-    auto memFn = std::mem_fn(&IDataSelector::getDataType2);
-
-    ON_CALL(*mockSelector, getDataType2(_)).WillByDefault(lambda);
-    EXPECT_CALL(*mockSelector, getDataType2(_)).Times(1);
-
-    m_browser.invokeDataRequest(memFn, selector, dummyData);
-    EXPECT_TRUE(lambdaCalled);
-}
-
-TEST_F(Regression, WrongUsers)
-{
-    const auto userId = "10";
-
-    std::vector<size_t> dummy;
-    std::vector<std::string> dummy1;
-
-    EXPECT_FALSE(m_browser.getDataType1(userId, dummy));
-    EXPECT_FALSE(m_browser.getDataType2(dummy, userId));
-    EXPECT_FALSE(m_browser.getDataType3(userId, dummy1));
-}
-
-TEST_F(Regression, GetDataType1Data)
-{
-    const auto userId = "2";
-    const MockDataSelector& selector {*getMockSelector(m_browser, userId)};
-
-    std::vector<size_t> data {1, 2, 3};
-
-    ON_CALL(selector, getDataType1(_, _))
-            .WillByDefault(DoAll
-                           (
-                               SetArgReferee<0>(data), // <- data will be set
-                               Return(true))
-                           );
-
-    EXPECT_CALL(selector, getDataType1(_, _)) // <- if getter will be called
-            .Times(1);
-
-    std::vector<size_t> output;
-    EXPECT_TRUE(m_browser.getDataType1(userId, output));
-
-    EXPECT_EQ(data, output); // <- data passed by selector must be set in output param
-}
-
-TEST_F(Regression, GetDataType2Data)
-{
-    const auto userId = "3";
-    const MockDataSelector& selector {*getMockSelector(m_browser, userId)};
-
-    std::vector<size_t> data {1, 2, 3};
-
-    ON_CALL(selector, getDataType2(_))
-            .WillByDefault(DoAll
-                           (
-                               SetArgReferee<0>(data), // <- data will be set
-                               Return(true))
-                           );
-
-    EXPECT_CALL(selector, getDataType2(_)) // <- if getter will be called
-            .Times(1);
-
-    std::vector<size_t> output;
-    EXPECT_TRUE(m_browser.getDataType2(output, userId));
-
-    EXPECT_EQ(data, output); // <- data passed by selector must be set in output param
-}
-
-TEST_F(Regression, GetDataType3Data)
-{
-    const auto userId = "1";
-    const MockDataSelector& selector {*getMockSelector(m_browser, userId)};
-
-    std::deque<size_t> data {1, 2, 3};
-
-    ON_CALL(selector, getDataType3(_))
-            .WillByDefault(DoAll
-                           (
-                               SetArgReferee<0>(data), // <- data will be set
-                               Return(true))
-                           );
-
-    EXPECT_CALL(selector, getDataType3(_)) // <- if getter will be called
-            .Times(1);
-
-    std::vector<std::string> output;
-    EXPECT_TRUE(m_browser.getDataType3(userId, output));
-
-    auto isProcessed = [](const size_t lhs, const std::string& rhs) {
-        return std::to_string(lhs) == rhs;
+        const std::string name;
+        const size_t year;
     };
 
-    EXPECT_EQ(data.size(), output.size());
-    EXPECT_TRUE(std::equal(data.begin(), data.end(), output.begin(), isProcessed)); // <- all data processed
+    StaticPlaylist<std::list<SongNoMove>, SongNoMove> playlist {};
+
+    EXPECT_EQ(playlist.play(std::string {"example3"}, 3000u).name, "example3");
 }
 
-TEST_F(Regression, GetDataType1Result)
+TEST(TracklistOperations, FromLvalue)
 {
-    const auto userId = "1";
-    const MockDataSelector& selector {*getMockSelector(m_browser, userId)};
+    basic_container data {Song{"example1"}, Song{"example2"}};
+    DefaultTracklist playlist {data};
 
-    ON_CALL(selector, getDataType1(_, _))
-            .WillByDefault(Return(false));
+    const Song newSong {"example3"};
+    playlist.play(newSong);
 
-    EXPECT_CALL(selector, getDataType1(_, _))
-            .Times(1);
-
-    std::vector<size_t> output;
-    EXPECT_FALSE(m_browser.getDataType1(userId, output));
+    EXPECT_EQ(playlist.current(), newSong);
 }
 
-TEST_F(Regression, GetDataType2Result)
+TEST(TracklistOperations, NoUBToday)
 {
-    const auto userId = "1";
-    const MockDataSelector& selector {*getMockSelector(m_browser, userId)};
-
-    ON_CALL(selector, getDataType2(_))
-            .WillByDefault(Return(false));
-
-    EXPECT_CALL(selector, getDataType2(_))
-            .Times(1);
-
-    std::vector<size_t> output;
-    EXPECT_FALSE(m_browser.getDataType2(output, userId));
+    basic_container data {};
+    DefaultTracklist playlist {data};
+    EXPECT_THROW(playlist.switchNext(), std::out_of_range);
 }
 
-TEST_F(Regression, GetDataType3Result)
+TEST(TracklistOperations, Switch)
 {
-    const auto userId = "1";
-    const MockDataSelector& selector {*getMockSelector(m_browser, userId)};
-
-    ON_CALL(selector, getDataType3(_))
-            .WillByDefault(Return(false));
-
-    EXPECT_CALL(selector, getDataType3(_))
-            .Times(1);
-
-    std::vector<std::string> output;
-    EXPECT_FALSE(m_browser.getDataType3(userId, output));
+    basic_container data {Song {"example1"},
+                          Song {"example2"},
+                          Song {"example3"}};
+    DefaultTracklist playlist {data};
+    EXPECT_EQ(playlist.current(), Song {"example1"});
+    playlist.switchNext();
+    EXPECT_EQ(playlist.current(), Song {"example2"});
+    EXPECT_EQ(playlist.count(), 2);
 }
-
