@@ -7,7 +7,7 @@ using namespace ::testing;
 struct Song
 {
     std::string name;
-    explicit Song(std::string song_name)
+    explicit Song(std::string song_name = std::string())
         : name {std::move(song_name)}
     {
     }
