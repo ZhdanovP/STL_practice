@@ -1,41 +1,17 @@
 #pragma once
-#include <vector>
-#include <string>
-#include <stdexcept>
+#include <list>
 
-template<class Container, class Song_t>
-class StaticPlaylist
-{
-public:
-    /** @todo Member traits */
-
-    /** @todo Iterators */
-
-    StaticPlaylist() = default;
-
-    /** @todo Constructor from any reversible sequence container */
-
-    /** @todo Assignment from any reversible sequence container */
-
-    /** @todo Add track from initializer */
-    template<class... Args>
-    const Song_t& play(Args&&... songData);
-
-    /** @todo Add track */
-    const Song_t& play(const Song_t& song);
-
-    /** @todo Get first track in playlist stack */
-    const Song_t& current() const;
-
-    /** @todo Skip to the next track in playlist, remove current */
-    void switchNext();
-
-    /** @todo Amount of tracks in playlist */
-    size_type count() const;
-
-    /** @todo Checks if playlist has any playable tracks */
-    bool hasTracks() const;
-
-private:
-    Container m_tracklist;
-};
+/** @todo implement effective list rotation algorithm
+ *
+ * T - value type
+ * BI - iterator type
+ *
+ * @param list - container, for which rotation will be done
+ * @param begin - begin of sequence that will be rotated
+ * @param end - end of a sequence that will be rotated
+ * @param new_begin - new position of rotated sequence
+ *
+ * @note See https://en.cppreference.com/w/cpp/algorithm/rotate
+ */
+template<class T, class BI>
+void rotate(std::list<T>& list, BI begin, BI new_begin, BI end);

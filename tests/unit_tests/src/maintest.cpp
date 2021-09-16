@@ -1,164 +1,53 @@
 #include "maintest.h"
-#include <vector>
-#include <deque>
-#include <list>
 
 using namespace ::testing;
-struct Song
-{
-    std::string name;
-    explicit Song(std::string song_name)
-        : name {std::move(song_name)}
-    {
-    }
-};
 
-bool operator==(const Song& lhs, const Song& rhs)
+TEST(Rotate, LeftSimple)
 {
-    return lhs.name == rhs.name;
+    std::list<size_t> data {0, 1, 2, 3, 4, 5};
+    // 0 is moved to the end
+    rotate(data, data.begin(), data.end(), std::next(data.begin()));
+
+    std::list<size_t> expected {1, 2, 3, 4, 5, 0};
+    EXPECT_EQ(data, expected);
 }
 
-using basic_container = std::vector<Song>;
-using other_container1 = std::deque<Song>;
-using other_container2 = std::list<Song>;
-
-using DefaultTracklist = StaticPlaylist<basic_container, Song>;
-
-TEST(Traits, ContainerTraits)
+TEST(Rotate, RightSimple)
 {
-    static_assert (std::is_same<DefaultTracklist::value_type,
-                                Song>::value,
-                   "Wrong value_type trait!");
-    static_assert (std::is_same<DefaultTracklist::reference,
-                                Song&>::value,
-                   "Wrong reference trait!");
-    static_assert (std::is_same<DefaultTracklist::const_reference,
-                                const Song&>::value,
-                   "Wrong const_reference trait!");
-    static_assert (std::is_same<DefaultTracklist::iterator,
-                                basic_container::iterator>::value,
-                   "Wrong iterator trait!");
-    static_assert (std::is_same<DefaultTracklist::const_iterator,
-                                basic_container::const_iterator>::value,
-                   "Wrong const_iterator trait!");
-    static_assert (std::is_same<DefaultTracklist::difference_type,
-                                ptrdiff_t>::value,
-                   "Wrong difference_type trait!");
-    static_assert (std::is_same<DefaultTracklist::size_type,
-                                size_t>::value,
-                   "Wrong size_type trait!");
+    std::list<size_t> data {0, 1, 2, 3, 4, 5};
+    // 5 moved to the begin
+    rotate(data, std::prev(data.end()), data.begin(), data.end());
+
+    std::list<size_t> expected {5, 0, 1, 2, 3, 4};
+    EXPECT_EQ(data, expected);
 }
 
-TEST(Initialization, PlaylistInitBasic)
+TEST(Rotate, 3Left)
 {
-    basic_container data {Song{"example1"}, Song{"example2"}};
-    DefaultTracklist playlist {data};
-    EXPECT_TRUE(playlist.hasTracks());
+    std::list<size_t> data {0, 1, 2, 3, 4, 5};
+    // 0 - 2 are moved to the end
+    rotate(data, data.begin(), data.end(), std::next(data.begin(), 3));
+
+    std::list<size_t> expected {3, 4, 5, 0, 1, 2};
+    EXPECT_EQ(data, expected);
 }
 
-TEST(Initialization, PlaylistInitOther1)
+TEST(Rotate, 2Left)
 {
-    other_container1 data {Song{"example1"}, Song{"example2"}};
-    DefaultTracklist playlist {data};
-    EXPECT_TRUE(playlist.hasTracks());
+    std::list<size_t> data {0, 1, 2, 3, 4, 5};
+    // 0 - 1 are moved to the end
+    rotate(data, data.begin(), data.end(), std::next(data.begin(), 2));
+
+    std::list<size_t> expected {2, 3, 4, 5, 0, 1};
+    EXPECT_EQ(data, expected);
 }
 
-TEST(Initialization, PlaylistInitOther2)
+TEST(Rotate, 2Right)
 {
-    other_container2 data {Song{"example1"}, Song{"example2"}};
-    DefaultTracklist playlist {data};
-    EXPECT_TRUE(playlist.hasTracks());
-}
+    std::list<size_t> data {0, 1, 2, 3, 4, 5};
+    // 4-5 moved to the begin
+    rotate(data, std::prev(data.end(), 2), data.begin(), data.end());
 
-TEST(RangeFor, Iterators)
-{
-    basic_container data {Song{"example1"}, Song{"example2"}};
-    DefaultTracklist playlist {data};
-
-    for (auto& entry : playlist)
-    {
-        static_assert (std::is_const<std::remove_reference<decltype (entry)>::type>::value,
-                       "Iterator must be only const");
-    }
-}
-
-TEST(TracklistCommon, Order)
-{
-    basic_container data {Song{"example1"}, Song{"example2"}};
-    DefaultTracklist playlist {data};
-
-    std::reverse(data.begin(), data.end());
-    EXPECT_TRUE(std::equal(playlist.begin(), playlist.end(), data.begin()));
-}
-
-TEST(TracklistOperations, AssignLvalue)
-{
-    basic_container data {Song{"example1"}, Song{"example2"}};
-    DefaultTracklist playlist {data};
-
-    other_container1 newData {Song {"example0"}, Song {"example3"}};
-    playlist = newData;
-
-    EXPECT_EQ(playlist.count(), 2);
-    EXPECT_EQ(playlist.current(), Song {"example0"});
-}
-
-TEST(TracklistOperations, FromArguments)
-{
-    basic_container data {Song{"example1"}, Song{"example2"}};
-    DefaultTracklist playlist {data};
-    playlist.play("example3");
-    EXPECT_EQ(playlist.current().name, "example3");
-}
-
-TEST(TracklistOperations, FromSeveralArguments)
-{
-    struct SongNoMove {
-        SongNoMove() = delete;
-        SongNoMove(const std::string& name, size_t year)
-                 : name {name},
-                   year {year}
-        {
-        }
-
-        SongNoMove(SongNoMove&&) = delete;
-        SongNoMove(const SongNoMove&) = delete;
-
-        const std::string name;
-        const size_t year;
-    };
-
-    StaticPlaylist<std::list<SongNoMove>, SongNoMove> playlist {};
-
-    EXPECT_EQ(playlist.play(std::string {"example3"}, 3000u).name, "example3");
-}
-
-TEST(TracklistOperations, FromLvalue)
-{
-    basic_container data {Song{"example1"}, Song{"example2"}};
-    DefaultTracklist playlist {data};
-
-    const Song newSong {"example3"};
-    playlist.play(newSong);
-
-    EXPECT_EQ(playlist.current(), newSong);
-}
-
-TEST(TracklistOperations, NoUBToday)
-{
-    basic_container data {};
-    DefaultTracklist playlist {data};
-    EXPECT_THROW(playlist.switchNext(), std::out_of_range);
-}
-
-TEST(TracklistOperations, Switch)
-{
-    basic_container data {Song {"example1"},
-                          Song {"example2"},
-                          Song {"example3"}};
-    DefaultTracklist playlist {data};
-    EXPECT_EQ(playlist.current(), Song {"example1"});
-    playlist.switchNext();
-    EXPECT_EQ(playlist.current(), Song {"example2"});
-    EXPECT_EQ(playlist.count(), 2);
+    std::list<size_t> expected {4, 5, 0, 1, 2, 3};
+    EXPECT_EQ(data, expected);
 }
