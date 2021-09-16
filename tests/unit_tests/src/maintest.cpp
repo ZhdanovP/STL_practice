@@ -1,7 +1,11 @@
-#include "maintest.h"
-#include <vector>
+#include "impl.h"
+
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+
 #include <deque>
 #include <list>
+#include <vector>
 
 using namespace ::testing;
 struct Song
