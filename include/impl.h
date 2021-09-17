@@ -31,10 +31,16 @@ public:
     void switchNext();
 
     /** @todo Amount of tracks in playlist */
-    size_type count() const;
+    size_type count() const
+    {
+        return m_tracklist.size();
+    }
 
     /** @todo Checks if playlist has any playable tracks */
-    bool hasTracks() const;
+    bool hasTracks() const
+    {
+        return m_tracklist.empty();
+    }
 
 private:
     Container m_tracklist;
