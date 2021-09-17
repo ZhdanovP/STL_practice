@@ -2,52 +2,30 @@
 
 using namespace ::testing;
 
-TEST(Rotate, LeftSimple)
+TEST(Reverse, Easy)
 {
-    std::list<size_t> data {0, 1, 2, 3, 4, 5};
-    // 0 is moved to the end
-    rotate(data, data.begin(), data.end(), std::next(data.begin()));
-
-    std::list<size_t> expected {1, 2, 3, 4, 5, 0};
-    EXPECT_EQ(data, expected);
+    const std::string input {"the sky is blue"};
+    const std::string expected {"blue is sky the"};
+    EXPECT_EQ(reverseWords(input), expected);
 }
 
-TEST(Rotate, RightSimple)
+TEST(Reverse, MultipleSpaces)
 {
-    std::list<size_t> data {0, 1, 2, 3, 4, 5};
-    // 5 moved to the begin
-    rotate(data, std::prev(data.end()), data.begin(), data.end());
-
-    std::list<size_t> expected {5, 0, 1, 2, 3, 4};
-    EXPECT_EQ(data, expected);
+    const std::string input {"a good   example"};
+    const std::string expected {"example good a"};
+    EXPECT_EQ(reverseWords(input), expected);
 }
 
-TEST(Rotate, 3Left)
+TEST(Reverse, TrailingSpaces)
 {
-    std::list<size_t> data {0, 1, 2, 3, 4, 5};
-    // 0 - 2 are moved to the end
-    rotate(data, data.begin(), data.end(), std::next(data.begin(), 3));
-
-    std::list<size_t> expected {3, 4, 5, 0, 1, 2};
-    EXPECT_EQ(data, expected);
+    const std::string input {"  hello world!  "};
+    const std::string expected {"world! hello"};
+    EXPECT_EQ(reverseWords(input), expected);
 }
 
-TEST(Rotate, 2Left)
+TEST(Reverse, Corner)
 {
-    std::list<size_t> data {0, 1, 2, 3, 4, 5};
-    // 0 - 1 are moved to the end
-    rotate(data, data.begin(), data.end(), std::next(data.begin(), 2));
-
-    std::list<size_t> expected {2, 3, 4, 5, 0, 1};
-    EXPECT_EQ(data, expected);
-}
-
-TEST(Rotate, 2Right)
-{
-    std::list<size_t> data {0, 1, 2, 3, 4, 5};
-    // 4-5 moved to the begin
-    rotate(data, std::prev(data.end(), 2), data.begin(), data.end());
-
-    std::list<size_t> expected {4, 5, 0, 1, 2, 3};
-    EXPECT_EQ(data, expected);
+    const std::string input {""};
+    const std::string expected {""};
+    EXPECT_EQ(reverseWords(input), expected);
 }

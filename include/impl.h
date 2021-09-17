@@ -1,17 +1,14 @@
 #pragma once
-#include <list>
+#include <sstream>
+#include <deque>
+#include <iterator>
 
-/** @todo implement effective list rotation algorithm
+/**
+ * @todo Implement function that will reverse words in a sentence
+ * @example "Hello there" -> "there Hello"
+ * @param input - sentence with words splitted by spaces
+ * @return Sentence with reversed order of words
  *
- * T - value type
- * BI - iterator type
- *
- * @param list - container, for which rotation will be done
- * @param begin - begin of sequence that will be rotated
- * @param end - end of a sequence that will be rotated
- * @param new_begin - new position of rotated sequence
- *
- * @note See https://en.cppreference.com/w/cpp/algorithm/rotate
+ * @warning YOU MUST USE STRING STREAMS AND STREAM ITERATORS!
  */
-template<class T, class BI>
-void rotate(std::list<T>& list, BI begin, BI new_begin, BI end);
+std::string reverseWords(const std::string& input);
