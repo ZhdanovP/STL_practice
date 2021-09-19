@@ -1,7 +1,8 @@
 #pragma once
-#include <sstream>
+#include <algorithm>
 #include <deque>
 #include <iterator>
+#include <sstream>
 
 /**
  * @todo Implement function that will reverse words in a sentence
@@ -11,4 +12,21 @@
  *
  * @warning YOU MUST USE STRING STREAMS AND STREAM ITERATORS!
  */
-std::string reverseWords(const std::string& input);
+std::string reverseWords( const std::string& input )
+{
+   std::istringstream inputStream( input );
+   std::deque<std::string> words;
+   std::copy( std::istream_iterator<std::string>( inputStream ),
+              std::istream_iterator<std::string>(), std::back_inserter( words ) );
+
+   std::ostringstream outStream;
+   std::copy( words.rbegin(), words.rend(), std::ostream_iterator<std::string>( outStream, " " ) );
+
+   std::string result( outStream.str() );
+   if ( !result.empty() )
+   {
+      result.pop_back(); // remove trailing space
+   }
+
+   return result;
+}
