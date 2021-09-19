@@ -15,9 +15,9 @@
 std::string reverseWords( const std::string& input )
 {
    std::istringstream inputStream( input );
-   std::deque<std::string> words;
-   std::copy( std::istream_iterator<std::string>( inputStream ),
-              std::istream_iterator<std::string>(), std::back_inserter( words ) );
+
+   // https://www.py4u.net/discuss/71357
+   std::deque<std::string> words( std::istream_iterator<std::string>( inputStream ), {} );
 
    std::ostringstream outStream;
    std::copy( words.rbegin(), words.rend(), std::ostream_iterator<std::string>( outStream, " " ) );
