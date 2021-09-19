@@ -4,7 +4,7 @@
 #include <vector>
 #define private public // <- communism
 #include "impl.h"
-
+/*
 class Regression : public ::testing::Test
 {
 public:
@@ -41,3 +41,4 @@ public:
                 (std::deque<size_t>& returnValues),
                 (override, const));
 };
+*/

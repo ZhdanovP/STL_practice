@@ -162,3 +162,17 @@ TEST(TracklistOperations, Switch)
     EXPECT_EQ(playlist.current(), Song {"example2"});
     EXPECT_EQ(playlist.count(), 2);
 }
+/*
+TEST(TracklistOperations, addToList)
+{
+    basic_container data {Song {"example1"},
+                          Song {"example2"},
+                          Song {"example3"}};
+    DefaultTracklist playlist {data};
+    EXPECT_EQ(playlist.current(), Song {"example1"});
+    playlist.play(Song{"example4"}, Song{"example5"});
+    EXPECT_EQ(playlist.current(), Song {"example5"});
+    playlist.switchNext();
+    EXPECT_EQ(playlist.current(), Song {"example4"});
+    EXPECT_EQ(playlist.count(), 4);
+}*/
