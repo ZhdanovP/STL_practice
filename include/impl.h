@@ -52,6 +52,11 @@ public:
    /** @todo Get first track in playlist stack */
    const Song_t& current() const
    {
+      if ( m_tracklist.empty() )
+      {
+         throw std::out_of_range( "No current track! No tracks in playlist!" );
+      }
+
       return m_tracklist.back();
    }
 
@@ -60,7 +65,7 @@ public:
    {
       if ( m_tracklist.empty() )
       {
-         throw std::out_of_range( "No tracks in playlist!" );
+         throw std::out_of_range( "Cant switch! No tracks in playlist!" );
       }
 
       m_tracklist.pop_back();
