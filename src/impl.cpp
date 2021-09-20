@@ -7,32 +7,32 @@
 
 const std::vector<std::pair<char, char>> brackets{ { '(', ')' }, { '[', ']' }, { '{', '}' } };
 
-static bool isOpenBracket( const char symbol );
-static bool isCloseBracket( const char symbol );
+static bool isOpeningBracket( const char symbol );
+static bool isClosingBracket( const char symbol );
 static bool isPairedBrackets( const std::pair<char, char> bracketPair );
 
 bool isValid( const std::string& source )
 {
-   std::stack<char> stack;
+   std::stack<char> buffer;
 
    for ( const char& symbol : source )
    {
-      if ( isOpenBracket( symbol ) )
+      if ( isOpeningBracket( symbol ) )
       {
-         stack.push( symbol );
+         buffer.push( symbol );
          continue;
       }
 
-      if ( isCloseBracket( symbol ) )
+      if ( isClosingBracket( symbol ) )
       {
-         if ( stack.empty() ) // no bracket to pair with
+         if ( buffer.empty() ) // no bracket to pair with
          {
             return false;
          }
 
-         if ( isPairedBrackets( { stack.top(), symbol } ) )
+         if ( isPairedBrackets( { buffer.top(), symbol } ) )
          {
-            stack.pop();
+            buffer.pop();
          }
          else
          {
@@ -41,14 +41,14 @@ bool isValid( const std::string& source )
       }
    }
 
-   return stack.empty();
+   return buffer.empty();
 }
 
-static bool isOpenBracket( const char symbol )
+static bool isOpeningBracket( const char symbol )
 {
-   for ( const auto& [first, second] : brackets )
+   for ( const auto& [opening, closing] : brackets )
    {
-      if ( symbol == first )
+      if ( symbol == opening )
       {
          return true;
       }
@@ -57,11 +57,11 @@ static bool isOpenBracket( const char symbol )
    return false;
 }
 
-static bool isCloseBracket( const char symbol )
+static bool isClosingBracket( const char symbol )
 {
-   for ( const auto& [first, second] : brackets )
+   for ( const auto& [opening, closing] : brackets )
    {
-      if ( symbol == second )
+      if ( symbol == closing )
       {
          return true;
       }
