@@ -30,7 +30,6 @@ public:
    template <class OtherContainer>
    StaticPlaylist& operator=( const OtherContainer& other )
    {
-      m_tracklist.clear();
       m_tracklist.assign( other.rbegin(), other.rend() );
       return *this;
    }
