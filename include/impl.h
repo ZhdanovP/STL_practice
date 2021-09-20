@@ -11,4 +11,4 @@
  *
  * @return true if expression is valid
  */
-bool isValid(const std::string& source);
+bool isValid( const std::string& source );
