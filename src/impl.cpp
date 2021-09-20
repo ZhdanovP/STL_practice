@@ -9,7 +9,7 @@ const std::vector<std::pair<char, char>> brackets{ { '(', ')' }, { '[', ']' }, {
 
 static bool isOpenBracket( const char symbol );
 static bool isCloseBracket( const char symbol );
-static bool isPairedBrackets( std::pair<char, char> bracketPair );
+static bool isPairedBrackets( const std::pair<char, char> bracketPair );
 
 bool isValid( const std::string& source )
 {
@@ -70,7 +70,7 @@ static bool isCloseBracket( const char symbol )
    return false;
 }
 
-static bool isPairedBrackets( std::pair<char, char> bracketPair )
+static bool isPairedBrackets( const std::pair<char, char> bracketPair )
 {
    if ( std::find( brackets.begin(), brackets.end(), bracketPair ) != brackets.end() )
    {
