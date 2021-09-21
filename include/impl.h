@@ -39,7 +39,7 @@ public:
     /** @todo Checks if playlist has any playable tracks */
     bool hasTracks() const
     {
-        return m_tracklist.empty();
+        return !m_tracklist.empty();
     }
 
 private:
