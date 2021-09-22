@@ -5,7 +5,7 @@
 #define private public // <- communism
 #include "impl.h"
 
-class Regression : public ::testing::Test
+/*class Regression : public ::testing::Test
 {
 public:
     void SetUp() override
@@ -41,3 +41,4 @@ public:
                 (std::deque<size_t>& returnValues),
                 (override, const));
 };
+*/
