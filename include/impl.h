@@ -8,3 +8,8 @@
         50-69 – 3; 70-89 – 4;
         90+ - 5;
  */
+
+/** @param mark - mark by 100-point grade system
+ *  @return pair of flag "success" and mark by 5-point system
+ */
+std::pair<bool, unsigned int> convert(const unsigned int &mark);
