@@ -21,7 +21,7 @@ add_library(cpp_bar_serving SHARED ${sources})
 
 set_target_properties(cpp_bar_serving PROPERTIES
                         C_STANDARD 11
-                        CXX_STANDARD 11
+                        CXX_STANDARD 17
                         PUBLIC_HEADER "${headers}"
 )
 
