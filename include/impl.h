@@ -8,3 +8,4 @@
         50-69 – 3; 70-89 – 4;
         90+ - 5;
  */
+int adaptNewGradesToGrandparents(int grade);
