@@ -14,4 +14,13 @@
  * @note See https://en.cppreference.com/w/cpp/algorithm/rotate
  */
 template<class T, class BI>
-void rotate(std::list<T>& list, BI begin, BI new_begin, BI end);
+void rotate(std::list<T>& list, BI begin, BI new_begin, BI end)
+{
+    if (list.empty())
+    {
+        return;
+    }
+    std::list<T> tail;
+    tail.splice(tail.begin(), list, begin, end);
+    list.splice(new_begin, tail);
+}
