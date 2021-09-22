@@ -25,17 +25,17 @@ TEST(Convertor, Incorrect)
     EXPECT_EQ(::convert100pointTo5(-10), 0);
     EXPECT_EQ(::convert100pointTo5(110), 0);
 }
-/*
+
 TEST(Convertor, AllValues)
 {
     for (int i = 1; i<=29; i++)
         EXPECT_EQ(::convert100pointTo5(i), 1);
     for (int i = 30; i<=49; i++)
         EXPECT_EQ(::convert100pointTo5(i), 2);
-    for (int i = 50; i=69; i++)
+    for (int i = 50; i<=69; i++)
         EXPECT_EQ(::convert100pointTo5(i), 3);
     for (int i = 70; i<=89; i++)
         EXPECT_EQ(::convert100pointTo5(i), 4);
     for (int i = 90; i<=100; i++)
         EXPECT_EQ(::convert100pointTo5(i), 5);              
-}*/
+}
