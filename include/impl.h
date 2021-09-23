@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
-
+#include <algorithm>
+#include <stack>
+#
 /**
  * @todo isValid - check if given expression is valid - all open brackets are closed
  * by CORRESPONDING closed bracket.
