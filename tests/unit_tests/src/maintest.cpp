@@ -1,48 +1,98 @@
 #include "maintest.h"
-#include <utility>
+#include <experimental/filesystem>
 
 using namespace ::testing;
+namespace fs = std::experimental::filesystem;
 
-TEST(Anagrams, PositiveDifferent)
+TEST_F(ThreeFiles, OneGroupThreeFiles)
 {
-    std::string testString {"12356abс"};
-    std::string original {testString};
-    while (std::next_permutation(testString.begin(), testString.end()))
+    for (size_t i = 0; i < 3; i++)
     {
-        EXPECT_TRUE(is_anagram(testString, original));
+        files[i] << "11";
     }
+
+    for (auto& file : files)
+    {
+        file.close();
+    }
+
+    std::vector<std::vector<std::string>> groups {findDuplicates("sandbox")};
+    EXPECT_EQ(groups.size(), 1);
+    EXPECT_EQ(groups.front().size(), 3);
 }
 
-TEST(Anagrams, PositiveSame)
+TEST_F(ThreeFiles, ThreeGroupsOneFile)
 {
-    std::string testString {10, '1'};
-    testString.insert(testString.end(), 10, '4');
-    testString.insert(testString.end(), 10, '1');
-    testString.insert(testString.end(), 10, '2');
+    files[0] << "11";
+    files[1] << "12";
+    files[2] << "13";
 
-    std::string original {testString};
-    EXPECT_TRUE(is_anagram(testString, original));
+    for (auto& file : files)
+    {
+        file.close();
+    }
+
+    std::vector<std::vector<std::string>> groups {findDuplicates("sandbox")};
+    EXPECT_EQ(groups.size(), 0);
 }
 
-TEST(Anagrams, NegativeDifferent)
+TEST_F(ThreeFiles, Reversed)
 {
-    std::string testString {"12bс"};
-    std::string modified {testString};
-    modified.front() = 'k';
-    while (std::next_permutation(testString.begin(), testString.end()))
+    files[0] << "12345";
+    files[1] << "54321";
+    files[2] << "12345";
+
+    for (auto& file : files)
     {
-        EXPECT_FALSE(is_anagram(testString, modified));
+        file.close();
     }
+
+    std::vector<std::vector<std::string>> groups {findDuplicates("sandbox")};
+    EXPECT_EQ(groups.size(), 1);
+    EXPECT_EQ(groups.front().size(), 2);
 }
 
-TEST(Anagrams, NegativeSame)
+TEST_F(TwoFolders, TwoGroups)
 {
-    std::string testString {10, '2'};
-    std::string modified {testString};
-    modified.push_back('2');
+    files[0] << "111";
+    files[1] << "111";
+    files[2] << "121";
+    files[3] << "121";
 
-    while (std::next_permutation(testString.begin(), testString.end()))
+    for (auto& file : files)
     {
-        EXPECT_FALSE(is_anagram(testString, modified));
+        file.close();
     }
+
+    std::vector<std::vector<std::string>> groups {findDuplicates("sandbox")};
+    EXPECT_EQ(groups.size(), 2);
+    EXPECT_EQ(groups.front().size(), 2);
+}
+
+TEST_F(NineFiles, ThreeGroupsThreeFiles)
+{
+    for (size_t i = 0; i < 3; i++)
+    {
+        files[i] << "abcd";
+    }
+
+    for (size_t i = 3; i < 6; i++)
+    {
+        files[i] << "abcde";
+    }
+
+    for (size_t i = 6; i < 9; i++)
+    {
+        files[i] << "abcdg";
+    }
+
+    for (auto& file : files)
+    {
+        file.close();
+    }
+
+    std::vector<std::vector<std::string>> groups {findDuplicates("sandbox")};
+    EXPECT_EQ(groups.size(), 3);
+    EXPECT_TRUE(std::all_of(groups.begin(), groups.end(),
+                          [](const std::vector<std::string>& subgroup) {return subgroup.size() == 3;}));
 }
