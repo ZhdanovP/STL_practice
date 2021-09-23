@@ -46,3 +46,18 @@ TEST(Anagrams, NegativeSame)
         EXPECT_FALSE(is_anagram(testString, modified));
     }
 }
+
+TEST(Anagrams, PositiveZero)
+{
+    std::string testString {""};
+    std::string modified {testString};
+    EXPECT_TRUE(is_anagram(testString, modified));
+}
+
+TEST(Anagrams, NegativeZero)
+{
+    std::string testString {""};
+    std::string modified {"j"};
+    EXPECT_FALSE(is_anagram(testString, modified));
+    EXPECT_FALSE(is_anagram(modified, testString));
+}
