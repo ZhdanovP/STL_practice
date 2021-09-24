@@ -1,27 +1,29 @@
 #include "impl.h"
 #include <unordered_map>
 
-std::unordered_map<char, unsigned int> createIdentifier(const std::string& word)
+bool is_anagram(const std::string& first, const std::string& second)
 {
-    std::unordered_map<char, unsigned int> identifier;
-    for (const auto &ch : word) {
-        auto it = identifier.find(ch);
-        if (it == identifier.end()) {
-            identifier[ch] = 1;
+    std::unordered_map<char, unsigned int> original;
+    for (const auto &ch : second) {
+        auto it = original.find(ch);
+        if (it == original.end()) {
+            original[ch] = 1;
         } else {
             ++(it->second);
         }
     }
-    return identifier;
-}
 
-bool is_anagram(const std::string& first, const std::string& second)
-{
-    const std::unordered_map<char, unsigned int> original = createIdentifier(second);
-    const std::unordered_map<char, unsigned int> anagram = createIdentifier(first);
-    if (original.empty() || anagram.empty()) {
-        return false;
+    for (const auto &ch : first) {
+        auto it = original.find(ch);
+        if (it == original.end()) {
+            return false;
+        }
+        if (it->second == 1) {
+            original.erase(it);
+            continue;
+        }
+        --(it->second);
     }
 
-    return original == anagram;
+    return original.empty();
 }
