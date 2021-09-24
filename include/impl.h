@@ -8,3 +8,6 @@
         50-69 – 3; 70-89 – 4;
         90+ - 5;
  */
+
+std::string Convertor(const std::string & str);
+
