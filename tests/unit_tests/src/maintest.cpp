@@ -1,98 +1,113 @@
 #include "maintest.h"
-#include <experimental/filesystem>
+#include "impl.h"
 
 using namespace ::testing;
-namespace fs = std::experimental::filesystem;
 
-TEST_F(ThreeFiles, OneGroupThreeFiles)
+bool isIncluded(worker_id worker, std::tuple<worker_id, worker_id, days>& intersectionData)
 {
-    for (size_t i = 0; i < 3; i++)
-    {
-        files[i] << "11";
-    }
+    return worker == std::get<0>(intersectionData)
+           || worker == std::get<1>(intersectionData);
+};
 
-    for (auto& file : files)
-    {
-        file.close();
-    }
+std::string generateFullCalendar()
+{
+    return std::string (daysInMonth, vacationMarker);
+};
 
-    std::vector<std::vector<std::string>> groups {findDuplicates("sandbox")};
-    EXPECT_EQ(groups.size(), 1);
-    EXPECT_EQ(groups.front().size(), 3);
+std::string generateEmptyCalendar()
+{
+    return std::string (daysInMonth, availableMarker);
+};
+
+std::string generateShiftedCalendar(size_t begin, size_t shift)
+{
+    std::string calendar (daysInMonth, availableMarker);
+    std::fill(std::next(calendar.begin(), begin),
+              std::next(calendar.begin(), shift),
+              vacationMarker);
+    return calendar;
 }
 
-TEST_F(ThreeFiles, ThreeGroupsOneFile)
+TEST(NormalCases, WholeIntersection)
 {
-    files[0] << "11";
-    files[1] << "12";
-    files[2] << "13";
+    const std::unordered_map<worker_id, calendar> vacationsData {
+        {1, generateFullCalendar()},
+        {2, generateFullCalendar()},
+        {3, generateEmptyCalendar()}
+    };
 
-    for (auto& file : files)
-    {
-        file.close();
-    }
+    auto maxIntersection = getMaxIntersection(vacationsData);
 
-    std::vector<std::vector<std::string>> groups {findDuplicates("sandbox")};
-    EXPECT_EQ(groups.size(), 0);
+    EXPECT_TRUE(isIncluded(1, maxIntersection));
+    EXPECT_TRUE(isIncluded(2, maxIntersection));
+    EXPECT_EQ(std::get<2>(maxIntersection), daysInMonth);
 }
 
-TEST_F(ThreeFiles, Reversed)
+TEST(NormalCases, PartIntersection)
 {
-    files[0] << "12345";
-    files[1] << "54321";
-    files[2] << "12345";
+    const std::unordered_map<worker_id, calendar> vacationsData {
+        {1, generateShiftedCalendar(0, 7)},
+        {2, generateShiftedCalendar(4, 8)},
+        {3, generateShiftedCalendar(3, 7)}
+    };
 
-    for (auto& file : files)
-    {
-        file.close();
-    }
+    auto maxIntersection = getMaxIntersection(vacationsData);
 
-    std::vector<std::vector<std::string>> groups {findDuplicates("sandbox")};
-    EXPECT_EQ(groups.size(), 1);
-    EXPECT_EQ(groups.front().size(), 2);
+    EXPECT_TRUE(isIncluded(1, maxIntersection));
+    EXPECT_TRUE(isIncluded(3, maxIntersection));
+    EXPECT_EQ(std::get<2>(maxIntersection), 4);
 }
 
-TEST_F(TwoFolders, TwoGroups)
+TEST(NormalCases, PartIntersection_2)
 {
-    files[0] << "111";
-    files[1] << "111";
-    files[2] << "121";
-    files[3] << "121";
+    const std::unordered_map<worker_id, calendar> vacationsData {
+        {1, generateShiftedCalendar(0, 7)},
+        {2, generateShiftedCalendar(1, 8)},
+        {3, generateShiftedCalendar(1, 8)}
+    };
 
-    for (auto& file : files)
-    {
-        file.close();
-    }
+    auto maxIntersection = getMaxIntersection(vacationsData);
 
-    std::vector<std::vector<std::string>> groups {findDuplicates("sandbox")};
-    EXPECT_EQ(groups.size(), 2);
-    EXPECT_EQ(groups.front().size(), 2);
+    EXPECT_TRUE(isIncluded(2, maxIntersection));
+    EXPECT_TRUE(isIncluded(3, maxIntersection));
+    EXPECT_EQ(std::get<2>(maxIntersection), 7);
 }
 
-TEST_F(NineFiles, ThreeGroupsThreeFiles)
+TEST(NormalCases, PartIntersection_3)
 {
-    for (size_t i = 0; i < 3; i++)
-    {
-        files[i] << "abcd";
-    }
+    const std::unordered_map<worker_id, calendar> vacationsData {
+        {1, generateShiftedCalendar(0, 13)},
+        {2, generateShiftedCalendar(8, 22)},
+        {3, generateShiftedCalendar(15, 25)}
+    };
 
-    for (size_t i = 3; i < 6; i++)
-    {
-        files[i] << "abcde";
-    }
+    auto maxIntersection = getMaxIntersection(vacationsData);
 
-    for (size_t i = 6; i < 9; i++)
-    {
-        files[i] << "abcdg";
-    }
+    EXPECT_TRUE(isIncluded(3, maxIntersection));
+    EXPECT_TRUE(isIncluded(2, maxIntersection));
+    EXPECT_EQ(std::get<2>(maxIntersection), 7);
+}
 
-    for (auto& file : files)
-    {
-        file.close();
-    }
+TEST(CornerCases, NoIntersection)
+{
+    const std::unordered_map<worker_id, calendar> vacationsData {
+        {1, generateFullCalendar()},
+        {2, generateEmptyCalendar()}
+    };
 
-    std::vector<std::vector<std::string>> groups {findDuplicates("sandbox")};
-    EXPECT_EQ(groups.size(), 3);
-    EXPECT_TRUE(std::all_of(groups.begin(), groups.end(),
-                          [](const std::vector<std::string>& subgroup) {return subgroup.size() == 3;}));
+    auto maxIntersection = getMaxIntersection(vacationsData);
+
+    EXPECT_FALSE(isIncluded(1, maxIntersection));
+    EXPECT_FALSE(isIncluded(2, maxIntersection));
+    EXPECT_EQ(std::get<2>(maxIntersection), 0);
+}
+
+TEST(CornerCases, Empty)
+{
+    const std::unordered_map<worker_id, calendar> vacationsData {
+    };
+
+    auto maxIntersection = getMaxIntersection(vacationsData);
+
+    EXPECT_EQ(std::get<2>(maxIntersection), 0);
 }

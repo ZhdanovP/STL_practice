@@ -1,22 +1,19 @@
 #pragma once
-#include <vector>
 #include <string>
+#include <map>
 #include <unordered_map>
 
-using filtering_map = std::unordered_map<size_t, std::vector<std::string>>;
-
-/** @todo With help of std filesystem, lists all regular files under specified directory recursively*/
-std::vector<std::string> listFiles(const std::string& directory);
-
-/** @todo Implement function that will remove group in if it has only one or zero elements */
-void removeUniqueGroups(filtering_map& filteredData);
-
-/** @todo Implement function that will transform map to a vector */
-std::vector<std::string> flattenGrouped (const filtering_map& grouped);
+using calendar = std::string; // format: o - available, x - vacation
+using worker_id = size_t;
+using days = size_t;
+constexpr days daysInMonth = 30;
+constexpr char availableMarker = 'o';
+constexpr char vacationMarker = 'x';
 
 /**
- * @todo Implement function that fill find duplicated files under the directory recursively
- * @param rootPath - directory to check
- * @return list of duplicated files, grouped by content
+ * @todo Implement function that will return two workers, which vacations are most intersected
+ *
+ * @param workerVacations - pairs of worker and his calendar
+ * @return Max intersection of two workers and intersection days count
  */
-std::vector<std::vector<std::string>> findDuplicates(const std::string& rootPath);
+std::tuple<worker_id, worker_id, days> getMaxIntersection(const std::unordered_map<worker_id, calendar>& workerVacations);
