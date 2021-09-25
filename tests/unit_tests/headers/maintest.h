@@ -2,10 +2,10 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 #include "impl.h"
-#include <experimental/filesystem>
+#include <filesystem>
 #include <fstream>
 
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 
 template<int Files>
 class NFiles : public ::testing::Test
