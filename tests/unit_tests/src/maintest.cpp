@@ -1,113 +1,157 @@
 #include "maintest.h"
 #include "impl.h"
+#include <numeric>
+#include <forward_list>
+#include <list>
+#include <deque>
 
 using namespace ::testing;
 
-bool isIncluded(worker_id worker, std::tuple<worker_id, worker_id, days>& intersectionData)
+TEST(StringAccumulate, AccumulateEqual)
 {
-    return worker == std::get<0>(intersectionData)
-           || worker == std::get<1>(intersectionData);
+    std::string result;
+
+    std::vector<std::string> dataToConcatenate {"one",
+                                                "two",
+                                                "three",
+                                                "four"};
+
+    std::copy(dataToConcatenate.begin(), dataToConcatenate.end(),
+              make_accumulator(result));
+
+    std::string expected {std::accumulate(dataToConcatenate.begin(), dataToConcatenate.end(),
+                                           std::string {})};
+
+    EXPECT_EQ(expected, result);
+}
+
+TEST(StringAccumulate, Forward)
+{
+    std::string result;
+
+    std::forward_list<std::string> dataToConcatenate {"one",
+                                                      "two",
+                                                      "three",
+                                                      "four"};
+
+    std::copy(dataToConcatenate.begin(), dataToConcatenate.end(),
+              make_accumulator(result));
+
+    std::string expected {std::accumulate(dataToConcatenate.begin(), dataToConcatenate.end(),
+                                           std::string {})};
+
+    EXPECT_EQ(expected, result);
+}
+
+struct move_only
+{
+    move_only() = default;
+    move_only(move_only&&)
+        : moved {true} {
+    }
+    move_only& operator=(move_only&&) {
+        moved = true;
+        return *this;
+    }
+    bool moved {false};
 };
 
-std::string generateFullCalendar()
+TEST(Accumulate, RValues)
 {
-    return std::string (daysInMonth, vacationMarker);
-};
+    std::vector<move_only> result;
+    const auto internalEntrySize = 10;
 
-std::string generateEmptyCalendar()
-{
-    return std::string (daysInMonth, availableMarker);
-};
+    std::vector<std::vector<move_only>> dataToConcatenate;
+    dataToConcatenate.resize(internalEntrySize);
+    for (auto& entry : dataToConcatenate)
+    {
+        entry.resize(internalEntrySize);
+    }
 
-std::string generateShiftedCalendar(size_t begin, size_t shift)
-{
-    std::string calendar (daysInMonth, availableMarker);
-    std::fill(std::next(calendar.begin(), begin),
-              std::next(calendar.begin(), shift),
-              vacationMarker);
-    return calendar;
+    std::copy(std::make_move_iterator(dataToConcatenate.begin()),
+              std::make_move_iterator(dataToConcatenate.end()),
+              make_accumulator(result));
+
+    EXPECT_EQ(result.size(), internalEntrySize * dataToConcatenate.size());
+    EXPECT_TRUE(std::all_of(result.begin(), result.end(), [](const move_only& object) {
+        return object.moved;
+    }));
 }
 
-TEST(NormalCases, WholeIntersection)
+TEST(Accumulate, OtherContainerRvalue)
 {
-    const std::unordered_map<worker_id, calendar> vacationsData {
-        {1, generateFullCalendar()},
-        {2, generateFullCalendar()},
-        {3, generateEmptyCalendar()}
-    };
+    std::vector<size_t> result;
+    const auto internalEntrySize = 10;
 
-    auto maxIntersection = getMaxIntersection(vacationsData);
+    std::list<std::deque<size_t>> dataToConcatenate;
+    dataToConcatenate.resize(internalEntrySize);
+    for (auto& entry : dataToConcatenate)
+    {
+        entry.resize(internalEntrySize);
+    }
 
-    EXPECT_TRUE(isIncluded(1, maxIntersection));
-    EXPECT_TRUE(isIncluded(2, maxIntersection));
-    EXPECT_EQ(std::get<2>(maxIntersection), daysInMonth);
+    std::copy(std::make_move_iterator(dataToConcatenate.begin()),
+              std::make_move_iterator(dataToConcatenate.end()),
+              make_accumulator(result));
+
+    EXPECT_EQ(result.size(), internalEntrySize * dataToConcatenate.size());
 }
 
-TEST(NormalCases, PartIntersection)
+TEST(Accumulate, OtherContainerLvalue)
 {
-    const std::unordered_map<worker_id, calendar> vacationsData {
-        {1, generateShiftedCalendar(0, 7)},
-        {2, generateShiftedCalendar(4, 8)},
-        {3, generateShiftedCalendar(3, 7)}
-    };
+    std::vector<size_t> result;
+    const auto internalEntrySize = 10;
 
-    auto maxIntersection = getMaxIntersection(vacationsData);
+    std::list<std::deque<size_t>> dataToConcatenate;
+    dataToConcatenate.resize(internalEntrySize);
+    for (auto& entry : dataToConcatenate)
+    {
+        entry.resize(internalEntrySize);
+    }
+    const auto constCopy = dataToConcatenate;
+    std::copy(constCopy.cbegin(),
+              constCopy.cend(),
+              make_accumulator(result));
 
-    EXPECT_TRUE(isIncluded(1, maxIntersection));
-    EXPECT_TRUE(isIncluded(3, maxIntersection));
-    EXPECT_EQ(std::get<2>(maxIntersection), 4);
+    EXPECT_EQ(result.size(), internalEntrySize * constCopy.size());
 }
 
-TEST(NormalCases, PartIntersection_2)
+TEST(Properties, Traits)
 {
-    const std::unordered_map<worker_id, calendar> vacationsData {
-        {1, generateShiftedCalendar(0, 7)},
-        {2, generateShiftedCalendar(1, 8)},
-        {3, generateShiftedCalendar(1, 8)}
-    };
+    using container = std::vector<int>;
+    using accumulator = accumulator<container>;
+    using category = std::iterator_traits<accumulator>::iterator_category;
 
-    auto maxIntersection = getMaxIntersection(vacationsData);
+    static_assert (std::is_same<category, std::output_iterator_tag>::value,
+                   "Wrong iterator type!");
 
-    EXPECT_TRUE(isIncluded(2, maxIntersection));
-    EXPECT_TRUE(isIncluded(3, maxIntersection));
-    EXPECT_EQ(std::get<2>(maxIntersection), 7);
-}
+    using reference = std::add_lvalue_reference<accumulator>::type;
+    using return_type_deref = decltype(std::declval<accumulator>().operator*());
+    static_assert (std::is_same<return_type_deref,
+                                reference>::value,
+                   "Wrong return type for dereferencing");
 
-TEST(NormalCases, PartIntersection_3)
-{
-    const std::unordered_map<worker_id, calendar> vacationsData {
-        {1, generateShiftedCalendar(0, 13)},
-        {2, generateShiftedCalendar(8, 22)},
-        {3, generateShiftedCalendar(15, 25)}
-    };
+    using return_type_increment = decltype(std::declval<accumulator>().operator++());
+    static_assert (std::is_same<return_type_increment,
+                                reference>::value,
+                   "Wrong return type for dereferencing");
 
-    auto maxIntersection = getMaxIntersection(vacationsData);
+    static_assert (std::is_trivially_copyable<accumulator>::value,
+                   "Shall support trivial copying");
 
-    EXPECT_TRUE(isIncluded(3, maxIntersection));
-    EXPECT_TRUE(isIncluded(2, maxIntersection));
-    EXPECT_EQ(std::get<2>(maxIntersection), 7);
-}
+    using lvalue_container = std::add_lvalue_reference<container>::type;
+    static_assert (std::is_assignable<accumulator,
+                                      lvalue_container>::value,
+                   "Shall support container assign (lvalue)");
 
-TEST(CornerCases, NoIntersection)
-{
-    const std::unordered_map<worker_id, calendar> vacationsData {
-        {1, generateFullCalendar()},
-        {2, generateEmptyCalendar()}
-    };
+    using rvalue_container = std::add_rvalue_reference<container>::type;
+    static_assert (std::is_assignable<accumulator,
+                                      rvalue_container>::value,
+                   "Shall support container assign (rvalue)");
 
-    auto maxIntersection = getMaxIntersection(vacationsData);
-
-    EXPECT_FALSE(isIncluded(1, maxIntersection));
-    EXPECT_FALSE(isIncluded(2, maxIntersection));
-    EXPECT_EQ(std::get<2>(maxIntersection), 0);
-}
-
-TEST(CornerCases, Empty)
-{
-    const std::unordered_map<worker_id, calendar> vacationsData {
-    };
-
-    auto maxIntersection = getMaxIntersection(vacationsData);
-
-    EXPECT_EQ(std::get<2>(maxIntersection), 0);
+    using another_container = std::deque<int>;
+    using const_ref_another = std::add_lvalue_reference<std::add_const<another_container>::type>::type;
+    static_assert (std::is_assignable<accumulator,
+                                      const_ref_another>::value,
+                   "Shall support container assign (lvalue)");
 }
