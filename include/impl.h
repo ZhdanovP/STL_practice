@@ -12,10 +12,10 @@ std::vector<std::string> listFiles(const std::string& directory);
 void removeUniqueGroups(filtering_map& filteredData);
 
 /** @todo Implement function that will transform map to a vector */
-std::vector<std::string> flattenGrouped (const filtering_map& grouped);
+std::vector<std::vector<std::string> > flattenGrouped (const filtering_map& grouped);
 
 /**
- * @todo Implement function that fill find duplicated files under the directory recursively
+ * @todo Implement function that will find duplicated files under the directory recursively
  * @param rootPath - directory to check
  * @return list of duplicated files, grouped by content
  */
